@@ -19,6 +19,6 @@ public class CrubotMain {
         CrubotCon c1 = new CrubotCon("irc.no.quakenet.org", "CruBot", "oauth:ca3muz1anz4eddy93v1f2a41lyotiqg", "#otabttt");
       
         c1.serverConnect();
-   
+     
 }
 }

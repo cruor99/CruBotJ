@@ -16,6 +16,7 @@ public class CrubotCon {
     String nick = "";
     String login = "";
     String channel = "";
+    
     public CrubotCon(String servName, String nickName, String loginPass, String channelName){
        server = servName;
        nick = nickName;
@@ -31,10 +32,6 @@ public class CrubotCon {
        BufferedReader reader = new BufferedReader(
         new InputStreamReader(socket.getInputStream()));
        
-       //Server logon
-       writer.write("NICK " + nick + "\r\n");
-       writer.write("USER" + login + " 8 * : Java IRC Bot Crubot \r\n");
-       writer.flush();
        
        //Read lines from the server until we get connection confirmation
        String line = null;
@@ -51,7 +48,7 @@ public class CrubotCon {
        //join channel
        writer.write("JOIN " + channel + "\r\n");
        writer.flush();
-       
+    
        //keep reading lines from the server
        while((line = reader.readLine()) != null){
            if(line.toLowerCase().startsWith("PING ")){
@@ -59,11 +56,11 @@ public class CrubotCon {
                writer.write("PONG " + line.substring(5) + "\r\n");
                writer.write("PRIVMSG "+ channel + " PONG \r\n");
                writer.flush();
-           }
+       }
            else{
                //print the raw line received by the bot
                System.out.println(line);
-           }
+}
            }
        }
 }
