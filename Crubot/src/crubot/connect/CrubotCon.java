@@ -7,6 +7,9 @@
 package crubot.connect;
 import java.io.*;
 import java.net.*;
+import java.util.Date;
+import java.util.regex.*;
+
 /**
  *
  * @author KjetilAndre
@@ -16,6 +19,7 @@ public class CrubotCon {
     String nick = "";
     String login = "";
     String channel = "";
+    int port = 6667;
     
     public CrubotCon(String servName, String nickName, String loginPass, String channelName){
        server = servName;
@@ -27,43 +31,53 @@ public class CrubotCon {
    public void serverConnect() throws IOException{
        //Server connection 
        Socket socket = new Socket(server, 6667);
+       //output stream
        BufferedWriter writer = new BufferedWriter(
             new OutputStreamWriter(socket.getOutputStream()));
+       //input stream
        BufferedReader reader = new BufferedReader(
         new InputStreamReader(socket.getInputStream()));
        
        
-       //Read lines from the server until we get connection confirmation
-       String line = null;
-       while ((line=reader.readLine()) != null){
-           if (line.indexOf("004") >= 0){
-               //we are now logged in.
-               break;
-           }
-           else if (line.indexOf("433") >= 0){
-               System.out.println("Nickname is alreay in use.");
-               return;
-           }
-        }
-       //join channel
-       writer.write("JOIN " + channel + "\r\n");
+       //authenticate with the server
+        writer.write("PASS " + login + "\n");
+       writer.write("NICK " + nick + "\n");
+       //Join the channel
+       writer.write("JOIN " + channel + "\n");
+       writer.write("PRIVMSG " + channel + " :Crubot up in this shit! \n");
        writer.flush();
-    
-       //keep reading lines from the server
-       while((line = reader.readLine()) != null){
-           if(line.toLowerCase().startsWith("PING ")){
-               //Pings must be responded to, or we will be disconnected
-               writer.write("PONG " + line.substring(5) + "\r\n");
-               writer.write("PRIVMSG "+ channel + " PONG \r\n");
+       System.out.println("Successfully connected to the channel");
+       
+       String currLine = "";
+       while ((currLine = reader.readLine()) !=null)
+       {
+           //checks for PING, returns PONG if found
+           Pattern pingRegex = Pattern.compile("^PING", Pattern.CASE_INSENSITIVE);
+           Matcher ping = pingRegex.matcher(currLine);
+           if(ping.find())
+           {
+               writer.write("PONG " + channel + "\n");
                writer.flush();
-       }
-           else{
-               //print the raw line received by the bot
-               System.out.println(line);
-}
            }
+           }
+       Pattern exitRegex = Pattern.compile("!exit", Pattern.CASE_INSENSITIVE);
+       Matcher exit = exitRegex.matcher(currLine);
+       if(exit.find())
+       {
+           writer.write("PRIVMSG " + channel + " :Bye Bye \n");
+           writer.write("PART " + channel + "\n");
+           writer.flush();
+           socket.close();
        }
-}
+      
+       }
+    public Date dateTime(){
+               Date d = new Date();
+        return d;
+                
+    }
+ }
+
      
 
 
